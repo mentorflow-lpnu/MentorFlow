@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node scripts/start.mjs",
+    "test:meeting": "node scripts/test-meeting.mjs",
     "build": "node scripts/build-workflows.mjs",
     "test": "node --test \"services/**/test/*.test.mjs\"",
     "e2e": "node test/e2e/run.mjs",

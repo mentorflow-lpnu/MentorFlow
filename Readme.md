@@ -34,9 +34,10 @@ Requirements: Node.js 24 and n8n 2.x.
 npm test          # unit tests
 npm run e2e       # real n8n against mocked Discord, GitHub and Firestore
 npm run build     # build workflows/*.json for import into n8n
+npm start -- --tunnel   # local n8n with .env and a public tunnel
 ```
 
-Copy `.env.example` to `.env` and fill it in. `npm run env:firebase -- <service-account.json>` writes the Firebase key into `.env`. See the [development guide](docs/guides/development.md) for importing workflows and the required n8n settings.
+Copy `.env.example` to `.env` and fill it in. `npm run env:firebase -- <service-account.json>` writes the Firebase key into `.env`. Running and testing locally: [docs/guides/local-run.md](docs/guides/local-run.md).
 
 ## Status
 

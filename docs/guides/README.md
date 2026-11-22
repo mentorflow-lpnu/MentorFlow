@@ -6,6 +6,7 @@ How to set up, run and use the system. Feature specifications (what we build and
 
 | Guide | About | Status |
 |---|---|---|
+| [local-run.md](local-run.md) | running locally with a tunnel, testing features 1 and 2 | written |
 | [development.md](development.md) | code structure, environment, building workflows, tests, importing into n8n | written |
 | [discord-router.md](discord-router.md) | the Discord interactions entry point and how to plug a part into it | written |
 | [tasks-sheet.md](tasks-sheet.md) | the tasks sheet and installing the Apps Script trigger | written |
