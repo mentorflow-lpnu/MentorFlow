@@ -1,109 +1,99 @@
-# Настя — меню ментора
+# Developer 2 — Nastia: mentor panel
 
-← [Таски](README.md) · специфікація: [фіча 4](../features/04-mentor-panel.md)
+← [Tasks and progress](README.md) · spec: [feature 4](../features/04-mentor-panel.md)
 
-| ID | Таска | Розмір | Потрібно від інших |
-|---|---|---|---|
-| N1 | Схеми `meetings`, `meeting_exceptions`, `templates`, `announcements`, `settings`, `access` | M | — |
-| N2 | `/mentor`, закріплена панель, перевірка доступу | S | маршрутизатор (Роман, R1) |
-| N3 | Каркас меню і навігація | M | — |
-| N4 | Meetings: створення трьох типів | L | — |
-| N5 | Meetings: Upcoming, Edit, Cancel | M | — |
-| N6 | Вибір учасників | M | — |
-| N7 | Templates | M | — |
-| N8 | Announcement | M | — |
-| N9 | Settings | M | — |
-| N10 | Access | S | — |
-| N11 | Тести й документація | M | схема `events` (Богдан, B2) |
+Dependencies on others: the Discord router (R1), the `events` schema (B2).
 
-## N1. Схеми
+## N1. Schemas
 
-Описати в `schema/` поля, типи повторів, винятки й приклади документів. Найважливіші схеми:
-- `meetings` — її читають Роман (нагадування) і Богдан (календар);
-- `settings` — її читають усі.
+Describe in `schema/` the fields, recurrence types, exceptions and example documents. The most important ones:
+- `meetings` — read by reminders and calendar export;
+- `settings` — read by every part.
 
-**Готово, коли:** схеми опубліковані до кінця 1-го тижня.
+Drafts of `meetings`, `meeting_exceptions` and `settings` already exist; reminders are built on them.
 
-## N2. Вхід у меню
+**Done when:** the schemas are published by the end of week 1.
 
-- Slash-команда `/mentor` (скрипт реєстрації).
-- Закріплене повідомлення з кнопкою «Open panel» у `mentor-panel`.
-- Доступ: роль `mentor` або запис в `access`. Іншим — «No access» повідомленням, яке бачать лише вони.
+## N2. Menu entry
 
-**Готово, коли:** ментор відкриває меню обома способами, а інші отримують відмову.
+- The `/mentor` slash command (a registration script).
+- A pinned message with an "Open panel" button in `mentor-panel`.
+- Access: the `mentor` role or an `access` entry. Others get "No access" in a message only they see.
 
-## N3. Каркас меню
+**Done when:** the mentor opens the menu both ways, and others are refused.
 
-- Головний екран: Meetings · Templates · Announcement · Calendar export · Settings · Access.
-- Кожен екран редагує те саме повідомлення; є кнопка Back.
-- Кнопка Calendar export передає дію з префіксом `cal:`, далі працює Богдан.
+## N3. Menu skeleton
 
-**Готово, коли:** можна пройти по всіх розділах і повернутися назад.
+- Main screen: Meetings · Templates · Announcement · Calendar export · Settings · Access.
+- Every screen edits the same message; there is a Back button.
+- Calendar export sends an action with the `cal:` prefix, handled by the calendar part.
 
-## N4. Створення зустрічей
+**Done when:** every section can be opened and left with Back.
 
-- Майстри:
-  - Weekly — дні пн–нд, на кожен день свій час і учасники, кнопка «Same as previous day»;
+## N4. Creating meetings
+
+- Wizards:
+  - Weekly — Mon–Sun, each day with its own time and participants, a "Same as previous day" button;
   - Every N weeks;
   - One-time.
-- Спільні поля: назва, опис, Zoom, нагадування (30, 5), шаблон, канал, дата завершення.
-- Підсумок перед збереженням → `meetings`.
+- Common fields: title, description, Zoom, reminders (30, 5), template, channel, end date.
+- A summary before saving → `meetings`.
 
-**Готово, коли:** усі три типи зберігаються за схемою N1.
+**Done when:** all three types are saved by the N1 schema.
 
-## N5. Керування зустрічами
+## N5. Managing meetings
 
-- Upcoming — зустрічі на 7 днів.
-- Edit / Cancel для однієї зустрічі (`meeting_exceptions`) або всієї серії.
-- При скасуванні — повідомлення в Meetings.
+- Upcoming — meetings in the next 7 days.
+- Edit / Cancel for one meeting (`meeting_exceptions`) or the whole series.
+- On cancel — a message in Meetings.
 
-**Готово, коли:** перенесена чи скасована зустріч правильно видна в Upcoming.
+**Done when:** a moved or cancelled meeting shows correctly in Upcoming.
 
-## N6. Вибір учасників
+## N6. Picking participants
 
-- Списки-вибори ролей і людей.
-- Ввід текстом (`@роль`, імена через кому) з перетворенням на згадки.
-- Ментору ще до збереження показується, що не знайдено або знайдено неоднозначно.
+- Select menus for roles and people.
+- Text input (`@role`, comma-separated names) turned into mentions.
+- Anything not found or ambiguous is shown to the mentor before saving.
 
-**Готово, коли:** усі три способи дають однаковий результат.
+**Done when:** all three ways give the same result.
 
-## N7. Шаблони
+## N7. Templates
 
-New, Edit, Delete, перегляд (`templates`). Шаблон підставляється в майстер N4. Стартові шаблони: Daily, Demo, Retro, Planning.
+New, Edit, Delete, view (`templates`). A template fills the N4 wizard. Starter templates: Daily, Demo, Retro, Planning.
 
-**Готово, коли:** зустріч, створена з шаблону, отримує всі його поля.
+**Done when:** a meeting created from a template gets all its fields.
 
 ## N8. Announcement
 
-- Вибір каналу.
-- Кого згадати: ролі, люди, `@everyone` / `@here` з підтвердженням.
-- Текст.
-- Попередній перегляд → Send → запис в `announcements`.
+- Channel choice.
+- Whom to mention: roles, people, `@everyone` / `@here` with a confirmation.
+- Text.
+- Preview → Send → an `announcements` document.
 
-**Готово, коли:** оголошення сповіщає саме вибраних.
+**Done when:** the announcement notifies exactly the chosen people.
 
 ## N9. Settings
 
-Екрани:
+Screens:
 - Channels — PR review, Meetings, General, mentor-panel;
-- PR — посилання на таблицю, «лейбл → роль», роль за замовчуванням, 12 год, емодзі;
-- Meetings — нагадування за замовчуванням, часовий пояс;
-- Feedback — посилання на форму й дашборд, пороги негативу, дата кінця спринту.
+- PR — tasks sheet link, label → role, default role, 12 h, emojis;
+- Meetings — default reminders, time zone;
+- Feedback — form and dashboard links, negative thresholds, sprint end date.
 
-Усе пишеться в `settings`.
+Everything is written to `settings`.
 
-**Готово, коли:** зміни зберігаються за схемою N1.
+**Done when:** changes are saved by the N1 schema.
 
 ## N10. Access
 
-Список людей з доступом, Add (вибір людини), Remove (`access`).
+A list of people with access, Add (pick a person), Remove (`access`).
 
-**Готово, коли:** доданий учасник відкриває меню, а видалений — ні.
+**Done when:** an added member opens the menu and a removed one can't.
 
-## N11. Тести й документація
+## N11. Tests and documentation
 
-- Юніт-тести обробників; e2e основних сценаріїв: створити тиждень, скасувати зустріч, змінити налаштування.
-- `guides/mentor-panel.md` — інструкція для ментора по всіх екранах.
-- Оновлена `features/04-mentor-panel.md`, якщо під час реалізації щось змінилось.
+- Unit tests of the handlers; e2e of the main scenarios: create a week, cancel a meeting, change a setting.
+- `guides/mentor-panel.md` — the mentor's guide to every screen.
+- `features/04-mentor-panel.md` updated where the implementation changed it.
 
-**Готово, коли:** тести зелені, документація відповідає реалізації.
+**Done when:** tests are green and the documentation matches the implementation.

@@ -1,157 +1,149 @@
-# Фіча 1. PR на рев'ю
+# Feature 1. PR review
 
-← [Огляд](../overview.md) · власник: Роман · таски: [roman.md](../tasks/roman.md)
+← [Overview](../overview.md) · [Tasks](../tasks/README.md)
 
 > [!NOTE]
-> Коли задача в Google Таблиці переходить з `In Progress` у `Ready for Review`, бот знаходить її PR на GitHub і публікує в канал рев'ю картку зі згадкою команди, яка має його рев'ювати. Далі бот стежить за станом PR: показує його реакцією і дозволяє перевідправити картку, якщо за 12 годин PR ніхто не відрев'ював.
+> When a task in the Google Sheet moves from `In Progress` to `Ready for Review`, the bot finds its PR on GitHub and posts a card to the review channel that mentions the team that should review it. The bot then tracks the PR: it shows the state as a reaction and lets anyone resend the card if nobody reviewed the PR within 12 hours.
 
-## Вихідні дані
+## Inputs
 
-**Таблиця задач (Google Sheets).** Рядок = задача, 4 колонки:
+**Tasks sheet (Google Sheets).** One row is one task, 4 columns:
 
-| № | Колонка | Що в ній | Чи використовує бот |
+| # | Column | Contents | Used by the bot |
 |---|---|---|---|
-| 1 | Назва | назва задачі, яка водночас є посиланням на задачу в GitHub (одна клітинка) | так: назва + посилання |
-| 2 | Story points | оцінка задачі | ні |
-| 3 | Duration | тривалість | ні |
-| 4 | Status | `Not started`, `In Progress`, `Ready for Review` або `Done` | так: тригер |
+| 1 | Name | the task title, which is also a link to the GitHub issue (one cell) | yes: title + link |
+| 2 | Story points | estimate | no |
+| 3 | Duration | duration | no |
+| 4 | Status | `Not started`, `In Progress`, `Ready for Review` or `Done` | yes: trigger |
 
-**GitHub.** Задача описана в репозиторії. Автор PR прив'язує задачу в описі PR (наприклад, `Closes #17`), і GitHub пов'язує задачу й PR в обидва боки. Так за задачею можна знайти її PR. Лейбли PR визначають, кого згадати.
+**GitHub.** The task is an issue in the repository. The PR author links the issue in the PR description (for example, `Closes #17`), and GitHub links the issue and the PR both ways, so the PR can be found from the issue. PR labels decide whom to mention.
 
-**Discord.** Канал для рев'ю PR (умовно `pr-review`).
+**Discord.** A channel for PR review (`pr-review`).
 
-## Тригер
+## Trigger
 
-Статус задачі змінюється **з `In Progress` на `Ready for Review`**. Інші переходи бот ігнорує. Перехід у `Done` чи назад в `In Progress` враховується лише в регулярній перевірці: така картка більше не перевідправляється.
+The task status changes **from `In Progress` to `Ready for Review`**. Other transitions don't publish anything. A move to `Done` or back to `In Progress` only updates the existing card: it is no longer checked or resent.
 
 > [!TIP]
-> Тригер реалізує Apps Script у самій таблиці (installable `onEdit`). Скрипт помічає зміну в колонці Status, і якщо нове значення `Ready for Review`, а попереднє `In Progress`, надсилає в n8n рядок: назву задачі, посилання з клітинки, номер рядка й секрет. Подія приходить миттєво, і n8n не потрібна Google-авторизація.
+> The trigger is an Apps Script in the sheet (installable `onEdit`). It sends every Status change to n8n with the task title, the link from the cell, the row number and a secret. The event arrives instantly, and n8n needs no Google authorization.
 
-## Флоу
+## Flow
 
 ```mermaid
 flowchart TD
-  A[Status: In Progress → Ready for Review] --> B[Apps Script надсилає рядок у n8n]
-  B --> C[n8n: посилання на задачу з клітинки]
-  C --> D[GitHub API: PR, прив'язаний до задачі]
-  D -->|не знайдено| X[повідомлення: задачу не залінковано]
-  D -->|знайдено| E[GitHub API: дані PR і лейбли]
-  E --> F[Discord: картка в канал рев'ю зі згадкою ролей]
-  F --> G[запис у pr_cards]
-  G --> H[перевірка стану кожні 10–15 хв]
-  H --> I{Стан PR}
-  I -->|змерджено| J[реакція 🟣, кнопка вимкнена]
-  I -->|схвалено| K[реакція ✅, кнопка вимкнена]
-  I -->|запитано зміни| L[реакція 🔁, кнопка вимкнена]
-  I -->|чекає рев'ю ≥ 12 год, задача ще в Ready for Review| M[кнопка Resend активна]
-  M --> N[хтось натискає] --> F
+  A[Status: In Progress → Ready for Review] --> B[Apps Script sends the row to n8n]
+  B --> C[n8n: task link from the cell]
+  C --> D[GitHub API: PR linked to the issue]
+  D -->|not found| X[message: no PR is linked]
+  D -->|found| E[GitHub API: PR data and labels]
+  E --> F[Discord: card in the review channel mentioning roles]
+  F --> G[pr_cards document]
+  G --> H[state check every 10–15 min]
+  H --> I{PR state}
+  I -->|merged| J[🟣 reaction, button disabled]
+  I -->|approved| K[✅ reaction, button disabled]
+  I -->|changes requested| L[🔁 reaction, button disabled]
+  I -->|waiting ≥ 12 h, task still in Ready for Review| M[Resend enabled]
+  M --> N[someone clicks] --> F
 ```
 
-1. **Подія з таблиці**: назва задачі, посилання на задачу, номер рядка.
-2. **Пошук PR.**
-   - З посилання визначити репозиторій і номер задачі.
-   - Через GitHub API знайти PR, що посилається на цю задачу.
-   - Якщо PR кілька, брати найновіший відкритий. Чернетки (draft) не беруться.
-   - Якщо PR немає — повідомлення «не залінковано», і на цьому все.
-3. **Дані PR**:
-   - назва і посилання;
-   - автор: GitHub-нікнейм і аватар;
-   - кількість доданих і видалених рядків;
-   - лейбли;
-   - стан: відкритий, змерджений чи закритий;
-   - рішення рев'ю: схвалено, запитано зміни або чекає рев'ю.
-4. **Картка** в канал рев'ю.
-5. **Запис у `pr_cards`**:
-   - id повідомлення й каналу;
-   - PR і задача;
-   - рядок таблиці;
-   - час публікації;
-   - стан.
-6. **Регулярна перевірка** кожної активної картки: стан PR у GitHub і статус задачі в таблиці. За результатом оновлюються реакція й кнопка Resend.
+1. **Sheet event**: task title, task link, row number.
+2. **PR lookup.**
+   - Get the repository and issue number from the link.
+   - Find PRs that reference the issue through the GitHub API.
+   - With several PRs, take the newest open one. Drafts are skipped.
+   - No PR → a "not linked" message, and nothing else.
+3. **PR data**:
+   - title and link;
+   - author: GitHub login and avatar;
+   - added and deleted lines;
+   - labels;
+   - state: open, merged or closed;
+   - review decision: approved, changes requested or waiting.
+4. **The card** in the review channel.
+5. **A `pr_cards` document**: message and channel IDs, PR and task, sheet row, publish time, state.
+6. **A periodic check** of every active card: the PR state on GitHub and the last task status from the sheet. The reaction and the Resend button are updated from the result.
 
-## Картка PR
+## PR card
 
-**Текст повідомлення** (згадки стоять у тексті, бо згадка всередині вбудованої картки не сповіщає):
+**Message text** (mentions are in the text because a mention inside an embed doesn't notify):
 
 > `@student-developer <author> opened a PR for review: <PR title>`
 
-**Вміст картки:**
-- назва PR;
-- автор — GitHub-нікнейм і аватар;
-- задача — назва задачі з таблиці;
-- зміни: зелений `+N` і червоний `−M` рядків. Звичайний текст Discord не фарбує, тому використовується блок коду ` ```diff `: рядки з `+` він показує зеленим, з `-` — червоним.
+**Card contents:**
+- PR title;
+- author — GitHub login and avatar;
+- task — the task title from the sheet;
+- changes: green `+N` and red `−M` lines. Plain Discord text has no colours, so a ` ```diff ` code block is used: it shows `+` lines in green and `-` lines in red.
 
-**Кнопки — три в один ряд, саме в такому порядку:**
+**Buttons — three in one row, in this order:**
 
-| Ліва | Середня | Права |
+| Left | Middle | Right |
 |---|---|---|
-| **Open task** — посилання на задачу | **Resend** — активна тільки за правилами нижче, інакше сіра | **Open PR** — посилання на PR |
+| **Open task** — link to the task | **Resend** — enabled only by the rules below, grey otherwise | **Open PR** — link to the PR |
 
-## Кого згадувати (лейбли)
+## Whom to mention (labels)
 
-Бот згадує команду, яка відповідає за PR, за його **лейблами на GitHub**. Відповідність «лейбл → роль» ментор задає в налаштуваннях ([фіча 4](04-mentor-panel.md)). Стартова відповідність:
+The bot mentions the team responsible for the PR by its **GitHub labels**. The mentor sets the label → role map in the settings ([feature 4](04-mentor-panel.md)). Until then the map comes from the role IDs in the environment:
 
-| Лейбл PR | Згадка |
-|---|---|
-| `dev` | `@student-developer` |
-| `qa` | `@student-qa` |
-| `qc` | `@student-qc` |
-| `devops` | `@student-devops` |
-| `design` | `@student-designer` |
-
-- Кілька лейблів — згадуються всі відповідні ролі.
-- На PR немає жодного відомого лейбла — бот бере лейбли задачі. Немає і там — згадується роль за замовчуванням із налаштувань (`@student-developer`).
-
-## Задачу не залінковано
-
-Якщо задача перейшла в `Ready for Review`, а PR до неї не знайдено, бот публікує в канал рев'ю:
-
-> ⚠️ `Task "<task title>" is in Ready for Review, but no PR is linked to it.` + кнопка **Open task**
-
-Автор додає в PR посилання на задачу (`Closes #17`) і знову переводить задачу з `In Progress` у `Ready for Review`.
-
-## Стани PR
-
-| Стан PR | Реакція на картці | Resend |
+| PR label | Mention | Variable |
 |---|---|---|
-| чекає рев'ю, минуло < 12 год | — | недоступна |
-| чекає рев'ю, минуло ≥ 12 год, задача ще в `Ready for Review` | — | **доступна** |
-| запитано зміни (Changes Requested) | 🔁 | недоступна, доки PR знову не чекатиме рев'ю |
-| схвалено (Approved) | ✅ | недоступна |
-| змерджено | 🟣 | недоступна, картку більше не перевіряємо |
-| закрито без мерджу або задача пішла з `Ready for Review` | — | недоступна, картку більше не перевіряємо |
+| `dev` | `@student-developer` | `DEVELOPER_ROLE_ID` |
+| `qa` | `@student-qa` | `STUDENT_QA_ID` |
+| `qc` | `@student-qc` | `STUDENT_QC_ID` |
+| `devops` | `@student-devops` | `DEVOPS_ROLE_ID` |
+| `design` | `@student-designer` | set in the mentor panel |
 
-Немає реакції — PR ще на рев'ю і потребує уваги. Є реакція — дивитися вже не треба.
+- Several labels — all matching roles are mentioned.
+- No known label on the PR — the task labels are used. None there either — the default role from the settings (`DEFAULT_PR_ROLE_ID`).
+
+## Task not linked
+
+If a task moved to `Ready for Review` and no PR was found, the bot posts to the review channel:
+
+> ⚠️ `Task "<task title>" is in Ready for Review, but no PR is linked to it.` + an **Open task** button
+
+The author adds the issue link to the PR (`Closes #17`) and moves the task from `In Progress` to `Ready for Review` again.
+
+## PR states
+
+| PR state | Reaction | Resend |
+|---|---|---|
+| waiting for review, < 12 h passed | — | disabled |
+| waiting for review, ≥ 12 h passed, task still in `Ready for Review` | — | **enabled** |
+| changes requested | 🔁 | disabled until the PR waits for review again |
+| approved | ✅ | disabled |
+| merged | 🟣 | disabled, the card is no longer checked |
+| closed without merge, or the task left `Ready for Review` | — | disabled, the card is no longer checked |
+
+No reaction means the PR still needs attention. A reaction means nobody needs to look at it anymore.
 
 > [!NOTE]
-> Discord не вміє сам «увімкнути кнопку через 12 годин». Бот робить її активною, коли редагує своє повідомлення під час регулярної перевірки. При натисканні бот ще раз перевіряє умови, тож навіть неактуальна кнопка нічого не зламає.
+> Discord can't "enable a button after 12 hours" by itself. The bot enables it by editing its message during the periodic check. On click the bot checks the conditions again, so an outdated button breaks nothing.
 
 ## Resend
 
-1. Кнопка активна, коли:
-   - від публікації минуло 12 годин;
-   - PR досі чекає рев'ю: не схвалено, без Changes Requested, не змерджено;
-   - задача досі в `Ready for Review`.
-2. Натиснути може **будь-хто**. Бот повторно перевіряє умови й публікує в той самий канал нову картку з актуальними даними.
-3. Для нової картки відлік 12 годин починається спочатку. **Стару картку бот видаляє**: свої повідомлення він може видаляти без додаткових прав. Якщо видалити не вдалося, на старій просто вимикається кнопка.
+1. The button is enabled when:
+   - 12 hours have passed since publishing;
+   - the PR is still waiting for review: not approved, no changes requested, not merged;
+   - the task is still in `Ready for Review`.
+2. **Anyone** can click it. The bot checks the conditions again and posts a new card with current data to the same channel.
+3. The 12-hour countdown restarts for the new card. **The bot deletes the old card**: it can delete its own messages without extra permissions. If deleting fails, the button on the old card is just disabled.
 
-## Компоненти
+## Components
 
-| Компонент | Що робить |
+| Component | What it does |
 |---|---|
-| Apps Script у таблиці | тригер `In Progress → Ready for Review`, надсилає рядок у n8n |
-| n8n: webhook «задача на рев'ю» | приймає подію, перевіряє секрет, витягує посилання на задачу |
-| n8n: пошук PR | GitHub API: PR за задачею, дані PR, лейбли |
-| n8n: «не залінковано» | повідомлення в канал рев'ю, якщо PR не знайдено |
-| n8n: публікація картки | згадки ролей за лейблами, картка з трьома кнопками |
-| Firestore | колекція `pr_cards` |
-| n8n: регулярна перевірка | раз на 10–15 хв оновлює реакції й доступність Resend |
-| n8n: обробник Resend | перевірка умов → нова картка → видалення старої |
+| Apps Script in the sheet | sends every Status change to n8n |
+| n8n `mfPrTaskEvents` | checks the secret, finds the PR, posts the card or the "not linked" message |
+| n8n `mfPrStateCheck` | every 10 min updates reactions and Resend |
+| n8n `mfPrInteractions` | Resend: re-check → new card → delete the old one |
+| Firestore | the `pr_cards` collection |
 
-Права бота в каналі рев'ю: перегляд каналу, надсилання повідомлень, вбудовані картки, реакції, історія повідомлень.
+Bot permissions in the review channel: view channel, send messages, embed links, add reactions, read message history.
 
-## Відкриті питання
+## Open questions
 
-- Точні назви лейблів у репозиторії (`dev` чи `developers`, `devops`…).
-- Остаточні емодзі станів (зараз ✅ / 🟣 / 🔁).
-- Чи потрібен TL;DR змін від LLM — див. [decisions.md](../decisions.md).
+- Exact label names in the repository (`dev` or `developers`, `devops`…).
+- Final state emojis (currently ✅ / 🟣 / 🔁).
+- Whether to add an LLM TL;DR of changes — see [decisions.md](../decisions.md).

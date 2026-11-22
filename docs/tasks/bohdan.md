@@ -1,104 +1,87 @@
-# Богдан — зворотний зв'язок, аналітика, календар, інфраструктура
+# Developer 3 — Bohdan: feedback, analytics, calendar, infrastructure
 
-← [Таски](README.md) · специфікації: [фіча 3](../features/03-feedback.md), [експорт календаря у фічі 4](../features/04-mentor-panel.md)
+← [Tasks and progress](README.md) · specs: [feature 3](../features/03-feedback.md), [calendar export in feature 4](../features/04-mentor-panel.md)
 
-| ID | Таска | Розмір | Потрібно від інших |
-|---|---|---|---|
-| B1 | Інфраструктура | M | — |
-| B2 | Схема `feedback`, `events` | S | — |
-| B3 | Google Form | S | — |
-| B4 | Прийом відгуку → `feedback` | M | — |
-| B5 | Негативні відгуки → картка ментору | M | схема `settings` (Настя, N1) |
-| B6 | Розсилка форми наприкінці спринту | S | схема `settings` (Настя, N1) |
-| B7 | Grafana: Firestore і дашборд відгуків | L | — |
-| B8 | Дашборд PR і зустрічей | M | схема `pr_cards`, `absences` (Роман, R2) |
-| B9 | Calendar export (`.ics`-підписка) | M | схема `meetings` (Настя, N1), маршрутизатор (Роман, R1) |
-| B10 | Тести й документація | M | — |
+Dependencies on others: the `settings` and `meetings` schemas (N1), the `pr_cards` and `absences` schemas (R2), the Discord router (R1).
 
-## B1. Інфраструктура
+## B1. Infrastructure
 
-- Firebase-проєкт, Firestore, service account.
+- A Firebase project, Firestore, a service account.
 - `docker-compose.yml`: n8n + Grafana.
-- Публічний HTTPS для n8n.
-- Discord-застосунок:
-  - Interactions Endpoint URL;
-  - права бота: повідомлення, вбудовані картки, реакції, історія, видалення своїх повідомлень;
-  - Server Members Intent.
-- `.env.example`, `guides/setup.md`.
+- Public HTTPS for n8n.
+- The Discord application: Interactions Endpoint URL; bot permissions (messages, embeds, reactions, history); Server Members Intent.
+- `guides/setup.md`.
 
-**Готово, коли:** будь-хто з команди піднімає середовище з нуля за `guides/setup.md`.
+**Done when:** anyone on the team brings the environment up from scratch with `guides/setup.md`.
 
-## B2. Схема `feedback`, `events`
+## B2. Schemas
 
-Описати в `schema/`. Для `events` — список типів подій, які пишуть Роман і Настя.
+Describe `feedback` and `events` in `schema/`. For `events` — the list of event types every part writes (the types already written by PR review and reminders are in [schema/README.md](../schema/README.md)).
 
-**Готово, коли:** схеми опубліковані до кінця 1-го тижня.
+**Done when:** the schemas are published by the end of week 1.
 
 ## B3. Google Form
 
-4 розділи за специфікацією:
-- роль, ім'я;
-- сітка з 7 оцінок 1–5, складність, NPS;
-- 5 відкритих питань;
-- зв'язок із розгалуженням.
+4 sections by the specification:
+- role, name;
+- a grid of 7 ratings 1–5, difficulty, NPS;
+- 5 open questions;
+- contact with branching.
 
-Плюс приховане поле «проєкт / спринт». Збір email у Google вимкнено. `guides/feedback-form.md`.
+Plus a hidden "project / sprint" field. Google email collection is off. `guides/feedback-form.md`.
 
-**Готово, коли:** форма відповідає специфікації, контакт обов'язковий лише після «Так…».
+**Done when:** the form matches the specification and the contact is required only after "Yes…".
 
-## B4. Прийом відгуку
+## B4. Feedback intake
 
-Apps Script `onFormSubmit` → webhook n8n → перевірка й нормалізація → `feedback`. Якщо ім'я й контакт порожні, відгук зберігається анонімно.
+Apps Script `onFormSubmit` → n8n webhook → validation and normalisation → `feedback`. Without a name and contact the response is stored anonymously.
 
-**Готово, коли:** відповідь з'являється у Firestore за кілька секунд.
+**Done when:** a response appears in Firestore within seconds.
 
-## B5. Негативні відгуки
+## B5. Negative feedback
 
-- Правила з `settings`: середнє ≤ 2,0 або «Команда» / «Ментор» / «Проєкт загалом» = 1.
-- Позначка `negative`.
-- Картка в `mentor-panel`: оцінки (низькі виділено), тексти, контакт (якщо дозволено), кнопка на дашборд.
+- Rules from `settings`: average ≤ 2.0 or "Team" / "Mentor" / "Project overall" = 1.
+- A `negative` flag.
+- A card in `mentor-panel`: ratings (low ones highlighted), texts, contact (if allowed), a dashboard button.
 
-**Готово, коли:** тестовий негативний відгук дає картку, звичайний — ні.
+**Done when:** a test negative response produces a card and a normal one doesn't.
 
-## B6. Розсилка форми
+## B6. Sending the form
 
-У дату кінця спринту (з `settings`) бот публікує в General повідомлення з посиланням на форму, де вже заповнені проєкт і спринт.
+On the sprint end date (from `settings`) the bot posts a message to General with the form link, project and sprint prefilled.
 
-**Готово, коли:** повідомлення приходить у задану дату з правильним посиланням.
+**Done when:** the message arrives on the set date with the right link.
 
 ## B7. Grafana
 
-- Перевірити плагін Firestore data source. Якщо не підійде — запасний варіант: n8n → Google Таблиця → Looker Studio.
-- Дашборд відгуків, усі панелі зі специфікації:
-  - загальне, критерії, складність;
-  - динаміка, ролі;
-  - негативні відгуки, «що покращити», контакти.
-- Доступ лише для ментора.
+- Check the Firestore data source plugin. Fallback: n8n → Google Sheet → Looker Studio.
+- The feedback dashboard with every panel from the specification: summary, criteria, difficulty; trend, roles; negative feedback, what to improve, contacts.
+- Access for the mentor only.
 - `guides/grafana.md`.
 
-**Готово, коли:** дашборд показує тестові дані за всіма панелями.
+**Done when:** the dashboard shows test data on every panel.
 
-## B8. Дашборд PR і зустрічей
+## B8. PR and meeting dashboard
 
-Дані з `pr_cards`, `absences`, `events`:
-- PR за тиждень;
-- час до першого рев'ю;
-- кількість Resend;
-- відсутні на зустрічах.
+Data from `pr_cards`, `absences`, `events`:
+- PRs per week;
+- time to first review;
+- number of Resends;
+- absences at meetings.
 
-**Готово, коли:** панелі показують тестові дані.
+**Done when:** the panels show test data.
 
 ## B9. Calendar export
 
-- Екран, на який веде кнопка з меню (префікс `cal:`): вибір ролі → посилання.
-- Вебхук n8n віддає `.ics` розкладу ролі за посиланням із секретним ключем: розгорнуті повтори, винятки, Zoom, опис.
+- The screen behind the menu button (`cal:` prefix): pick a role → a link.
+- An n8n webhook serves the role's `.ics` by a link with a secret key: expanded recurrences, exceptions, Zoom, description.
 - `guides/calendar.md`.
 
-**Готово, коли:** посилання підписується в Google Calendar і показує правильні зустрічі, а відкрите в браузері — завантажує файл.
+**Done when:** the link subscribes in Google Calendar with the right meetings, and opened in a browser downloads the file.
 
-## B10. Тести й документація
+## B10. Tests and documentation
 
-- Юніт-тести нормалізації, детектора негативу й генерації `.ics`; e2e прийому відгуку.
-- Оновлена `features/03-feedback.md` і розділ експорту в `features/04-mentor-panel.md`, якщо під час реалізації щось змінилось.
+- Unit tests of normalisation, the negative detector and `.ics` generation; e2e of feedback intake.
+- `features/03-feedback.md` and the export section of `features/04-mentor-panel.md` updated where the implementation changed them.
 
-**Готово, коли:** тести зелені, документація відповідає реалізації.
+**Done when:** tests are green and the documentation matches the implementation.

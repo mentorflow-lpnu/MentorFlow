@@ -1,23 +1,23 @@
-# Документація MentorFlow
+# MentorFlow documentation
 
-| Розділ | Що там |
+| Section | Contents |
 |---|---|
-| [overview.md](overview.md) | тема, принципи, ролі, фічі коротко, архітектура, технології |
-| [features/](features/) | специфікації фіч: що робимо і як має працювати |
-| [tasks/](tasks/README.md) | хто що робить: зони відповідальності, контракти, таски кожного |
-| [schema/](schema/README.md) | схеми колекцій Firestore — контракти між частинами |
-| [guides/](guides/README.md) | інструкції: як налаштувати, запустити й користуватися |
-| [decisions.md](decisions.md) | прийняті рішення й відкриті питання |
+| [overview.md](overview.md) | topic, principles, roles, features in brief, architecture, technologies |
+| [features/](features/) | feature specifications: what we build and how it must behave |
+| [tasks/](tasks/README.md) | who does what: ownership, contracts, task lists and progress |
+| [schema/](schema/README.md) | Firestore collection schemas, the contracts between parts |
+| [guides/](guides/README.md) | how to set up, run and use the system |
+| [decisions.md](decisions.md) | decisions made and open questions |
 
-## Фічі
+## Features
 
-1. [PR на рев'ю](features/01-pr-review.md) — Роман
-2. [Нагадування про зустрічі](features/02-meeting-reminders.md) — Роман
-3. [Зворотний зв'язок](features/03-feedback.md) — Богдан
-4. [Меню ментора](features/04-mentor-panel.md) — Настя (експорт календаря — Богдан)
+1. [PR review](features/01-pr-review.md)
+2. [Meeting reminders](features/02-meeting-reminders.md)
+3. [Feedback](features/03-feedback.md)
+4. [Mentor panel](features/04-mentor-panel.md)
 
-## Як оновлювати документацію
+## Keeping the docs current
 
-- Специфікацію фічі оновлює її власник, якщо під час реалізації щось змінилось.
-- Нове рішення чи відкрите питання записується в [decisions.md](decisions.md).
-- Зміна схеми в `schema/` — тільки власником колекції і з попередженням тих, хто її читає.
+- A feature specification is updated by its owner when the implementation changes it.
+- New decisions and open questions go to [decisions.md](decisions.md).
+- A schema in `schema/` is changed only by the collection owner, after warning its readers.

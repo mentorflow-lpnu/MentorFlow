@@ -1,129 +1,129 @@
-# Фіча 3. Зворотний зв'язок
+# Feature 3. Feedback
 
-← [Огляд](../overview.md) · власник: Богдан · таски: [bohdan.md](../tasks/bohdan.md)
+← [Overview](../overview.md) · [Tasks](../tasks/README.md)
 
 > [!NOTE]
-> Учасники оцінюють проєкт, процеси, задачі, команду й ментора і пишуть, що покращити. Відповіді потрапляють у Firestore, і ментор бачить статистику на дашборді Grafana. Про дуже негативний відгук бот одразу надсилає ментору картку в Discord. Анонімність — на вибір учасника.
+> Participants rate the project, processes, tasks, team and mentor and write what to improve. Responses go to Firestore, and the mentor sees statistics on a Grafana dashboard. For very negative feedback the bot immediately sends the mentor a card in Discord. Anonymity is the participant's choice.
 
-## Коли заповнюють
+## When it is filled in
 
-Наприкінці кожного спринту бот публікує в General повідомлення з посиланням на форму. Дату кінця спринту ментор задає в налаштуваннях ([фіча 4](04-mentor-panel.md)). У посиланні вже заповнені проєкт і спринт, тож на дашборді видно динаміку по спринтах.
+At the end of each sprint the bot posts a message with the form link to General. The mentor sets the sprint end date in the settings ([feature 4](04-mentor-panel.md)). The link has the project and sprint prefilled, so the dashboard shows the trend by sprint.
 
-## Поля форми
+## Form fields
 
-Форма — Google Forms, 4 розділи.
+A Google Form with 4 sections.
 
-### 1. Про тебе
+### 1. About you
 
-| Поле | Тип | Обов'язкове |
+| Field | Type | Required |
 |---|---|---|
-| Роль у проєкті | вибір: Developer, Designer, QA, QC, DevOps, Architect, Other | так |
-| Ім'я та прізвище | короткий текст | ні — порожньо = анонімно |
-| Проєкт / спринт | заповнюється з посилання, прихований | — |
+| Role in the project | choice: Developer, Designer, QA, QC, DevOps, Architect, Other | yes |
+| Full name | short text | no — empty means anonymous |
+| Project / sprint | prefilled from the link, hidden | — |
 
-Роль обов'язкова: без неї не порівняти оцінки різних ролей, а людину вона не розкриває.
+The role is required: without it ratings of different roles can't be compared, and it doesn't reveal the person.
 
-### 2. Оцінки
+### 2. Ratings
 
-Сітка, кожен рядок за шкалою 1–5 (1 — дуже погано, 5 — чудово), усі обов'язкові:
+A grid, each row on a 1–5 scale (1 — very bad, 5 — excellent), all required:
 
-| № | Критерій | Що питаємо |
+| # | Criterion | Question |
 |---|---|---|
-| 1 | Процеси | наскільки зручні й добре налаштовані scrum-процеси: дейліки, рев'ю, планування |
-| 2 | Архітектура | наскільки продумана архітектура проєкту |
-| 3 | Цікавість задач | наскільки цікаво було працювати над задачами |
-| 4 | Користь для розвитку | наскільки проєкт прокачав навички |
-| 5 | Команда | задоволеність командою |
-| 6 | Ментор | задоволеність ментором |
-| 7 | Проєкт загалом | загальна задоволеність проєктом |
+| 1 | Processes | how convenient and well set up the scrum processes are: dailies, reviews, planning |
+| 2 | Architecture | how well thought out the project architecture is |
+| 3 | Task interest | how interesting the tasks were |
+| 4 | Growth | how much the project improved your skills |
+| 5 | Team | satisfaction with the team |
+| 6 | Mentor | satisfaction with the mentor |
+| 7 | Project overall | overall satisfaction with the project |
 
-Окремо, не в сітці:
+Separately, outside the grid:
 
-| Поле | Тип | Обов'язкове |
+| Field | Type | Required |
 |---|---|---|
-| Складність задач | вибір: занадто легкі / в самий раз / занадто складні | так |
-| Чи порекомендуєш такий проєкт знайомим? | шкала 0–10 (NPS) | ні |
+| Task difficulty | choice: too easy / just right / too hard | yes |
+| Would you recommend such a project to friends? | 0–10 scale (NPS) | no |
 
-Складність винесено окремо: на цій шкалі немає «добре» чи «погано», тому її не змішують з оцінками 1–5.
+Difficulty is separate because this scale has no "good" or "bad", so it isn't mixed with the 1–5 ratings.
 
-### 3. Відкриті питання
+### 3. Open questions
 
-Довгий текст, усі необов'язкові:
-1. Що найбільше сподобалось?
-2. Що покращити в проєкті?
-3. Що покращити в процесах?
-4. Ідеї для майбутніх проєктів.
-5. Загальний коментар.
+Long text, all optional:
+1. What did you like most?
+2. What should be improved in the project?
+3. What should be improved in the processes?
+4. Ideas for future projects.
+5. General comment.
 
-### 4. Зв'язок
+### 4. Contact
 
-| Поле | Тип | Обов'язкове |
+| Field | Type | Required |
 |---|---|---|
-| Чи можна з тобою зв'язатися? | Ні / Так, щоб обговорити відгук / Так, надсилайте пропозиції (стажування, навчання) / Так, обидва | так |
-| Пошта або Discord-нік | короткий текст | так, але з'являється лише після «Так…» |
+| May we contact you? | No / Yes, to discuss the feedback / Yes, send me offers (internships, courses) / Yes, both | yes |
+| Email or Discord name | short text | yes, shown only after a "Yes…" |
 
-- Розгалуження Google Forms: після «Ні» форма завершується, після будь-якого «Так» з'являється обов'язкове поле контакту.
-- Біля питання написано: «If you leave a contact, your feedback is no longer anonymous».
-- Збір email-адрес у Google вимкнено.
+- Google Forms branching: after "No" the form ends, after any "Yes" a required contact field appears.
+- The question says: "If you leave a contact, your feedback is no longer anonymous".
+- Google email collection is off.
 
-## Обробка відповіді
+## Processing a response
 
 ```mermaid
 flowchart TD
-  A[Учасник надсилає Google Form] --> B[Apps Script onFormSubmit → n8n]
-  B --> C[перевірка й нормалізація]
-  C --> D[запис у feedback]
-  D --> E{Дуже негативний?}
-  E -->|так| F[позначка negative + картка в mentor-panel]
-  E -->|ні| G[тільки аналітика]
-  D --> H[дашборд Grafana]
+  A[Participant submits the Google Form] --> B[Apps Script onFormSubmit → n8n]
+  B --> C[validation and normalisation]
+  C --> D[feedback document]
+  D --> E{Very negative?}
+  E -->|yes| F[negative flag + card in mentor-panel]
+  E -->|no| G[analytics only]
+  D --> H[Grafana dashboard]
 ```
 
-1. **Отримання.** Apps Script форми (`onFormSubmit`) одразу надсилає відповідь у n8n.
-2. **Перевірка й нормалізація.** Оцінки в діапазоні, роль зі списку. Без імені й контакту відгук зберігається як анонімний.
-3. **Запис у `feedback`.**
-4. **Дуже негативний відгук** — виконується хоча б одне (пороги ментор змінює в налаштуваннях):
-   - середнє семи оцінок ≤ 2,0;
-   - «Команда», «Ментор» або «Проєкт загалом» = 1.
-5. **Картка в `mentor-panel`:**
-   - «⚠️ Negative feedback», дата, проєкт і спринт;
-   - роль; ім'я або «anonymous»;
-   - сім оцінок (1–2 виділені), складність, NPS;
-   - тексти відкритих питань (довгі — скорочено);
-   - контакт, якщо учасник дозволив;
-   - кнопка «Open dashboard».
+1. **Receiving.** The form's Apps Script (`onFormSubmit`) sends the response to n8n immediately.
+2. **Validation and normalisation.** Ratings in range, role from the list. Without a name and contact the response is stored as anonymous.
+3. **A `feedback` document.**
+4. **Very negative feedback** — at least one of (the mentor changes the thresholds in the settings):
+   - the average of the seven ratings ≤ 2.0;
+   - "Team", "Mentor" or "Project overall" = 1.
+5. **A card in `mentor-panel`:**
+   - "⚠️ Negative feedback", date, project and sprint;
+   - role; name or "anonymous";
+   - the seven ratings (1–2 highlighted), difficulty, NPS;
+   - the open answers (long ones shortened);
+   - the contact, if the participant allowed it;
+   - an "Open dashboard" button.
 
-## Дашборд ментора (Grafana)
+## Mentor dashboard (Grafana)
 
-| Панель | Що показує |
+| Panel | Shows |
 |---|---|
-| загальне | кількість відгуків, частка анонімних, середня оцінка, NPS |
-| за критеріями | середнє й розподіл 1–5 по кожному з семи критеріїв |
-| складність | частка «легко / в самий раз / складно» |
-| динаміка | середні оцінки й NPS по спринтах |
-| за ролями | середні оцінки для кожної ролі |
-| негативні відгуки | таблиця відгуків з позначкою negative |
-| що покращити | останні тексти відкритих питань |
-| контакти | хто погодився на зв'язок чи пропозиції |
+| summary | number of responses, share of anonymous ones, average rating, NPS |
+| by criterion | average and 1–5 distribution for each of the seven criteria |
+| difficulty | share of "easy / just right / hard" |
+| trend | average ratings and NPS by sprint |
+| by role | average ratings per role |
+| negative feedback | table of responses flagged negative |
+| what to improve | latest open answers |
+| contacts | who agreed to be contacted or to receive offers |
 
-Дашборд бачить тільки ментор.
+Only the mentor sees the dashboard.
 
 > [!WARNING]
-> Grafana не читає Firestore з коробки, потрібен плагін Firestore data source (community). Його треба перевірити на старті. Якщо не підійде, запасний варіант: n8n раз на день пише агрегати в Google Таблицю, а дашборд будується в Looker Studio.
+> Grafana doesn't read Firestore out of the box; it needs the community Firestore data source plugin, which must be checked early. If it doesn't fit, the fallback is: n8n writes daily aggregates to a Google Sheet, and the dashboard is built in Looker Studio.
 
-## Компоненти
+## Components
 
-| Компонент | Що робить |
+| Component | What it does |
 |---|---|
-| Google Form | 4 розділи, сітка оцінок, розгалуження, приховане поле проєкту/спринту |
-| Apps Script форми | `onFormSubmit` → webhook n8n |
-| n8n: обробка відгуку | перевірка, нормалізація, запис у `feedback` |
-| n8n: детектор негативу | правила з `settings` → позначка negative |
-| n8n: картка ментору | повідомлення в `mentor-panel` |
-| n8n: розсилка форми | повідомлення з посиланням у дату кінця спринту |
-| Grafana | панелі з таблиці вище |
+| Google Form | 4 sections, rating grid, branching, hidden project/sprint field |
+| Form Apps Script | `onFormSubmit` → n8n webhook |
+| n8n: feedback intake | validation, normalisation, `feedback` document |
+| n8n: negative detector | rules from `settings` → negative flag |
+| n8n: mentor card | message in `mentor-panel` |
+| n8n: form mailing | message with the link on the sprint end date |
+| Grafana | the panels above |
 
-## Не в першій версії
+## Not in the first version
 
-- Нові критерії оцінки.
-- Класифікація відгуків і оцінка тону тексту через LLM.
+- New rating criteria.
+- Feedback classification and sentiment analysis with an LLM.
