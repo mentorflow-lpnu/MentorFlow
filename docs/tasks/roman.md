@@ -96,8 +96,8 @@ Anyone clicks → conditions are re-checked → a new card → the old one is de
 ## R12. Launch on a real n8n
 
 - Fill `.env` (Firebase key via `npm run env:firebase`).
-- Start n8n with the variables from `.env` and the settings from the [development guide](../guides/development.md); import and publish the six workflows.
-- A public HTTPS address (a tunnel or a domain) → the Interactions Endpoint URL in the Developer Portal and `webhookUrl` in the sheet script.
+- `npm start -- --tunnel` ([local-run.md](../guides/local-run.md)): local n8n with `.env`, all workflows imported and published.
+- The tunnel URL → the Interactions Endpoint URL in the Developer Portal and `webhookUrl` in the sheet script.
 
 **Done when:** Discord saves the Interactions Endpoint URL and `testSelectedRow` in the sheet produces an `mfPrTaskEvents` execution.
 

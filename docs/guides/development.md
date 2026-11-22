@@ -36,6 +36,8 @@ A new part (for example, the mentor panel) is added as another `services/<name>/
 | `npm test` | unit tests of all services |
 | `npm run e2e` | a real n8n with all workflows against the mocked Firestore, Discord and GitHub |
 | `npm run build` | builds `workflows/*.json` from `services/*/workflows.mjs` |
+| `npm start [-- --tunnel]` | local n8n with `.env` and all workflows; see [local-run.md](local-run.md) |
+| `npm run test:meeting` | a test meeting in Firestore for checking reminders |
 | `npm run env:firebase -- <key.json>` | writes `FIREBASE_PROJECT_ID` and `FIREBASE_SERVICE_ACCOUNT` (base64) into `.env` |
 
 `npm run e2e` needs n8n 2.x and Node 24. Their paths are set with `N8N_BIN` and `N8N_NODE`.
@@ -55,6 +57,7 @@ Copy `.env.example` to `.env`. What each part needs:
 | `MF_TASKS_SECRET` | the tasks sheet event check; the same value goes into the Apps Script `CONFIG` |
 | `MF_INTERNAL_URL`, `MF_INTERNAL_SECRET` | router → feature workflow calls |
 | `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT` | Firestore in the cloud |
+| `NGROK_DOMAIN` | the static ngrok domain for `npm start -- --tunnel` |
 | `FIRESTORE_URL`, `FIRESTORE_TOKEN` | the Firestore emulator only (`http://localhost:8080/v1`, `owner`); empty for the cloud |
 
 `USER_ID`, `MENTOR_ROLE_ID`, `EVERYONE_ID` and `STUDENTS_ID` are not read by the current code; they are reserved for the mentor panel.
