@@ -1,0 +1,11 @@
+{
+  "name": "mentorflow",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-workflows.mjs",
+    "test": "node --test \"services/**/test/*.test.mjs\"",
+    "e2e": "node test/e2e/run.mjs",
+    "env:firebase": "node scripts/set-firebase-env.mjs"
+  }
+}

@@ -1,152 +1,152 @@
-# Фіча 4. Меню ментора
+# Feature 4. Mentor panel
 
-← [Огляд](../overview.md) · власник: Настя (експорт календаря — Богдан) · таски: [nastia.md](../tasks/nastia.md), [bohdan.md](../tasks/bohdan.md)
+← [Overview](../overview.md) · [Tasks](../tasks/README.md)
 
 > [!NOTE]
-> Ментор налаштовує бота прямо в Discord, без коду й таблиць: зустрічі, шаблони, оголошення, налаштування фіч і доступ. Розклад будь-якої ролі можна підписати в Google Calendar чи інший календар.
+> The mentor configures the bot directly in Discord, without code or spreadsheets: meetings, templates, announcements, feature settings and access. Any role's schedule can be subscribed to in Google Calendar or another calendar.
 
-## Доступ і вхід
+## Access and entry
 
-**Доступ.** Ментор (роль `mentor`) і ті, кому ментор видав доступ у розділі **Access**. Бот перевіряє доступ при кожній дії. Іншим відповідає «No access» повідомленням, яке бачать лише вони.
+**Access.** The mentor (`mentor` role) and the people the mentor granted access in **Access**. The bot checks access on every action. Others get "No access" in a message only they see.
 
-**Вхід — обидва способи:**
-- slash-команда `/mentor` у будь-якому каналі. Меню бачить лише той, хто його викликав (ephemeral-повідомлення);
-- закріплене повідомлення з кнопкою «Open panel» у закритому каналі `mentor-panel`.
+**Two entry points:**
+- the `/mentor` slash command in any channel; only the caller sees the menu (an ephemeral message);
+- a pinned message with an "Open panel" button in the private `mentor-panel` channel.
 
-## Як влаштоване меню
+## How the menu works
 
-У Telegram бот має власний чат із меню. У Discord бот живе на сервері, тому меню будується з того, що Discord дає ботам:
+In Telegram a bot has its own chat with a menu. In Discord a bot lives on a server, so the menu is built from what Discord offers bots:
 
-| Елемент Discord | Як використовуємо |
+| Discord element | Use |
 |---|---|
-| slash-команда `/mentor` | вхід у меню; з'являється в списку команд, щойно набираєш `/` |
-| ephemeral-повідомлення | меню бачить лише ментор |
-| кнопки | пункти меню, Back, Save, Cancel |
-| списки-вибори | ролі, люди, канали, дні тижня — вибір зі списку Discord |
-| форми (modal) | ввід тексту: назва, опис, посилання, час; до 5 полів на форму |
+| `/mentor` slash command | menu entry; appears in the command list as soon as you type `/` |
+| ephemeral message | only the mentor sees the menu |
+| buttons | menu items, Back, Save, Cancel |
+| select menus | roles, people, channels, weekdays — picked from a Discord list |
+| modals | text input: title, description, link, time; up to 5 fields per modal |
 
-**Навігація.** Кожен екран — те саме повідомлення меню, яке бот редагує на місці. Кнопка Back повертає на попередній екран, тож чат не засмічується.
+**Navigation.** Every screen is the same menu message edited in place. Back returns to the previous screen, so the chat stays clean.
 
 ```
 /mentor
 ├── 📅 Meetings
-│   ├── Upcoming — зустрічі на 7 днів
+│   ├── Upcoming — meetings in the next 7 days
 │   ├── New → Weekly / Every N weeks / One-time
-│   ├── Edit → вибір зустрічі → ця зустріч або вся серія
-│   └── Cancel → вибір зустрічі → ця зустріч або вся серія
-├── 🧩 Templates — список, New, Edit, Delete
-├── 📣 Announcement — канал → кого згадати → текст → попередній перегляд → Send
-├── 🗓 Calendar export — вибір ролі → посилання-підписка .ics
+│   ├── Edit → pick a meeting → this meeting or the whole series
+│   └── Cancel → pick a meeting → this meeting or the whole series
+├── 🧩 Templates — list, New, Edit, Delete
+├── 📣 Announcement — channel → whom to mention → text → preview → Send
+├── 🗓 Calendar export — pick a role → .ics subscription link
 ├── ⚙️ Settings
 │   ├── Channels — PR review, Meetings, General, mentor-panel
-│   ├── PR — таблиця задач, «лейбл → роль», роль за замовчуванням, 12 год, емодзі
-│   ├── Meetings — нагадування за замовчуванням (30, 5), часовий пояс
-│   └── Feedback — посилання на форму й дашборд, пороги негативу, дата кінця спринту
-└── 🔑 Access — Add (вибір людини), Remove
+│   ├── PR — tasks sheet, label → role, default role, 12 h, emojis
+│   ├── Meetings — default reminders (30, 5), time zone
+│   └── Feedback — form and dashboard links, negative thresholds, sprint end date
+└── 🔑 Access — Add (pick a person), Remove
 ```
 
-## Зустрічі
+## Meetings
 
 > [!IMPORTANT]
-> Розклад налаштовується **тільки в Discord**. Кожна зустріч має згадувати правильних людей у правильний день, а Google Calendar цього не вміє. Календар отримує лише експорт.
+> The schedule is configured **only in Discord**. Every meeting must mention the right people on the right day, which Google Calendar can't do. The calendar only receives an export.
 
-**Типи зустрічей:**
+**Meeting types:**
 
-| Тип | Приклад | Що задає ментор |
+| Type | Example | What the mentor sets |
 |---|---|---|
-| **Weekly** — часто повторювана | дейліки пн–пт | для кожного дня окремо: чи є зустріч, час, учасники, посилання |
-| **Every N weeks** — рідко повторювана | демо раз на 2 або 4 тижні | день тижня, час, N, дата першої зустрічі |
-| **One-time** — одноразова | окремий мітинг у будь-який день | дата, час |
+| **Weekly** — frequent | dailies Mon–Fri | per day: whether there is a meeting, time, participants, link |
+| **Every N weeks** — rare | a demo every 2 or 4 weeks | weekday, time, N, date of the first meeting |
+| **One-time** | a separate meeting on any day | date, time |
 
-**Поля зустрічі:**
-- обов'язкові: дні або дата, час початку, учасники, посилання на Zoom, нагадування (за замовчуванням 30 і 5 хв);
-- необов'язкові: назва, опис, шаблон, канал для нагадувань (за замовчуванням Meetings), дата завершення серії.
+**Meeting fields:**
+- required: days or date, start time, participants, Zoom link, reminders (30 and 5 min by default);
+- optional: title, description, template, reminder channel (Meetings by default), series end date.
 
-**Учасники** — ролі та/або люди. Їх задають вибором зі списку, текстом з `@` або іменами через кому, і бот перетворює все на згадки. Що не знайдено або знайдено неоднозначно, бот показує ментору до збереження. Деталі — у [фічі 2](02-meeting-reminders.md).
+**Participants** are roles and/or people. They are picked from a list, typed with `@` or as comma-separated names, and the bot turns everything into mentions. Anything not found or ambiguous is shown to the mentor before saving. Details are in [feature 2](02-meeting-reminders.md).
 
-**Керування:**
-- Upcoming — зустрічі на 7 днів;
-- Edit — одна зустріч (перенести, змінити посилання) або вся серія;
-- Cancel — одна зустріч (свято, хвороба) або вся серія. При скасуванні бот пише в Meetings «Today's meeting is cancelled».
+**Management:**
+- Upcoming — meetings in the next 7 days;
+- Edit — one meeting (move it, change the link) or the whole series;
+- Cancel — one meeting (a holiday, illness) or the whole series. On cancel the bot posts "Today's meeting is cancelled" to Meetings.
 
-**Приклад: Weekly**
+**Example: Weekly**
 1. `/mentor` → **Meetings** → **New** → **Weekly**.
-2. Форма: назва, опис, посилання на Zoom, шаблон.
-3. Список-вибір днів: Mon–Fri (можна кілька).
-4. Для кожного дня:
-   - форма: час;
-   - списки-вибори: ролі й люди;
-   - кнопка «Same as previous day».
-5. Підсумок тижня → **Save**. Зустріч з'являється в **Upcoming**, і бот нагадує про неї за [фічею 2](02-meeting-reminders.md).
+2. Modal: title, description, Zoom link, template.
+3. Weekday select: Mon–Fri (several allowed).
+4. For each day:
+   - modal: time;
+   - selects: roles and people;
+   - a "Same as previous day" button.
+5. Week summary → **Save**. The meeting appears in **Upcoming**, and the bot reminds about it as in [feature 2](02-meeting-reminders.md).
 
 > [!NOTE]
-> Форма Discord має не більше 5 полів, тому тиждень налаштовується кроками, день за днем.
+> A Discord modal has at most 5 fields, so a week is configured step by step, day by day.
 
-## Шаблони
+## Templates
 
-Шаблон — заготовка для створення зустрічі.
+A template is a preset for creating a meeting.
 
-| Поле | Приклад |
+| Field | Example |
 |---|---|
-| назва шаблону | Daily |
-| назва зустрічі | General Meeting |
-| опис / адженда | 1. What I did yesterday 2. What I'm doing today 3. Blockers |
-| учасники за замовчуванням | `@mentor`, `@student-developer` |
-| посилання за замовчуванням | постійне посилання на Zoom |
-| нагадування | 30 і 5 хв |
+| template name | Daily |
+| meeting title | General Meeting |
+| description / agenda | 1. What I did yesterday 2. What I'm doing today 3. Blockers |
+| default participants | `@mentor`, `@student-developer` |
+| default link | a permanent Zoom link |
+| reminders | 30 and 5 min |
 
-Дії: New, Edit, Delete, перегляд. Стартові шаблони: Daily, Demo, Retro, Planning.
+Actions: New, Edit, Delete, view. Starter templates: Daily, Demo, Retro, Planning.
 
-## Оголошення
+## Announcements
 
-1. **Announcement** → канал (за замовчуванням General).
-2. Кого згадати: ролі, люди, `@everyone` / `@here`. Для `@everyone` бот просить додаткове підтвердження.
-3. Текст.
-4. Попередній перегляд → **Send**. Згадані отримують сповіщення, оголошення записується в `announcements`.
+1. **Announcement** → channel (General by default).
+2. Whom to mention: roles, people, `@everyone` / `@here`. For `@everyone` the bot asks for an extra confirmation.
+3. Text.
+4. Preview → **Send**. The mentioned people get a notification, and the announcement is saved to `announcements`.
 
-## Налаштування
+## Settings
 
-| Розділ | Налаштування |
+| Section | Settings |
 |---|---|
-| Channels | канал рев'ю PR, Meetings, General, `mentor-panel` |
-| PR ([фіча 1](01-pr-review.md)) | посилання на таблицю задач; «лейбл → роль»; роль за замовчуванням; 12 год до Resend; емодзі станів |
-| Meetings ([фіча 2](02-meeting-reminders.md)) | нагадування за замовчуванням (30 і 5 хв); часовий пояс (Europe/Kyiv) |
-| Feedback ([фіча 3](03-feedback.md)) | посилання на форму й дашборд; пороги негативного відгуку; дата кінця спринту |
+| Channels | PR review channel, Meetings, General, `mentor-panel` |
+| PR ([feature 1](01-pr-review.md)) | tasks sheet link; label → role; default role; 12 h before Resend; state emojis |
+| Meetings ([feature 2](02-meeting-reminders.md)) | default reminders (30 and 5 min); time zone (Europe/Kyiv) |
+| Feedback ([feature 3](03-feedback.md)) | form and dashboard links; negative-feedback thresholds; sprint end date |
 
-Усе зберігається в `settings`, і зміна діє одразу, без правки коду.
+Everything is stored in `settings`, and a change applies immediately, without code changes.
 
 ## Access
 
-Список людей з доступом до меню, Add (вибір людини), Remove. Зберігається в `access`.
+A list of people with menu access, Add (pick a person), Remove. Stored in `access`.
 
-## Експорт розкладу в календар
+## Calendar export
 
-Власник — Богдан. Кнопка Calendar export у меню передає дію з префіксом `cal:`.
+The Calendar export button in the menu sends an action with the `cal:` prefix.
 
-1. Вибір ролі → бот дає постійне посилання на розклад цієї ролі: `…/calendar/student-developer.ics?key=…`.
-2. Посилання додається в Google Calendar як «календар за URL» (так само в Outlook, Apple Calendar), і календар сам підтягує зміни. Це і є синхронізація з Google Calendar з теми проєкту.
-3. Відкрите в браузері, те саме посилання завантажує файл `.ics`, який можна імпортувати чи переслати.
-4. `key` — секретний ключ, щоб розклад не був публічним.
-5. У подіях: назва, час, посилання на Zoom, опис, учасники текстом.
+1. Pick a role → the bot gives a permanent link to that role's schedule: `…/calendar/student-developer.ics?key=…`.
+2. The link is added to Google Calendar as "From URL" (the same in Outlook and Apple Calendar), and the calendar pulls changes by itself. This is the Google Calendar sync from the project topic.
+3. Opened in a browser, the same link downloads an `.ics` file that can be imported or forwarded.
+4. `key` is a secret so the schedule isn't public.
+5. Events contain the title, time, Zoom link, description and participants as text.
 
 > [!NOTE]
-> Google Calendar оновлює календарі, додані за URL, із затримкою до кількох годин. Нагадування від цього не залежать — їх публікує бот.
+> Google Calendar refreshes URL calendars with a delay of up to several hours. Reminders don't depend on it — the bot posts them.
 
-## Компоненти
+## Components
 
-| Компонент | Що робить | Хто |
-|---|---|---|
-| реєстрація `/mentor` | скрипт реєстрації slash-команди | Настя |
-| закріплена панель | повідомлення з кнопкою «Open panel» у `mentor-panel` | Настя |
-| n8n: меню | екрани, навігація, перевірка доступу | Настя |
-| n8n: майстри зустрічей | створення, зміна, скасування трьох типів | Настя |
-| n8n: Templates, Announcement, Settings, Access | відповідні екрани | Настя |
-| n8n: календар | екран вибору ролі + вебхук, що віддає `.ics` | Богдан |
-| Firestore | `meetings`, `meeting_exceptions`, `templates`, `announcements`, `settings`, `access` | Настя |
+| Component | What it does |
+|---|---|
+| `/mentor` registration | a script that registers the slash command |
+| pinned panel | a message with an "Open panel" button in `mentor-panel` |
+| n8n: menu | screens, navigation, access check |
+| n8n: meeting wizards | create, edit, cancel for all three types |
+| n8n: Templates, Announcement, Settings, Access | the corresponding screens |
+| n8n: calendar | the role picker + a webhook serving `.ics` |
+| Firestore | `meetings`, `meeting_exceptions`, `templates`, `announcements`, `settings`, `access` |
 
-## Не в першій версії
+## Not in the first version
 
-- Відкладені оголошення.
-- Шаблони оголошень.
-- Тижневий підсумок для ментора.
-- Пропозиції на потім: пауза на канікули, стан системи, журнал дій, тестове повідомлення ментору.
+- Scheduled announcements.
+- Announcement templates.
+- A weekly digest for the mentor.
+- Ideas for later: a holiday pause, system status, an action log, a test message to the mentor.

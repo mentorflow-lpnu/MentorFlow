@@ -1,118 +1,109 @@
-# Роман — PR на рев'ю, Reminder, маршрутизатор Discord
+# Developer 1 — Roman: Discord router, PR review, reminders
 
-← [Таски](README.md) · специфікації: [фіча 1](../features/01-pr-review.md), [фіча 2](../features/02-meeting-reminders.md)
+← [Tasks and progress](README.md) · specs: [feature 1](../features/01-pr-review.md), [feature 2](../features/02-meeting-reminders.md)
 
-| ID | Таска | Розмір | Потрібно від інших |
-|---|---|---|---|
-| R1 | Маршрутизатор дій Discord | M | облікові дані (Богдан, B1) |
-| R2 | Схема `pr_cards`, `absences` | S | — |
-| R3 | Тригер таблиці задач | S | — |
-| R4 | Пошук PR за задачею і дані PR | M | — |
-| R5 | Картка PR і «не залінковано» | M | схема `settings` (Настя, N1) |
-| R6 | Стан карток PR | M | — |
-| R7 | Кнопка Resend | S | — |
-| R8 | Планувальник Reminder за 30 і 5 хв | L | схема `meetings` (Настя, N1) |
-| R9 | «I can't attend today» і статуси | M | — |
-| R10 | Старт зустрічі і кнопка OK | S | — |
-| R11 | Тести й документація | M | схема `events` (Богдан, B2) |
+Dependencies on others: Firebase credentials (B1), the `settings` and `meetings` schemas (N1), the `events` schema (B2).
 
-## R1. Маршрутизатор дій Discord
+## R1. Discord router
 
-- Один Interactions Endpoint у n8n: перевірка підпису Ed25519, відповідь на PING.
-- Передача дії у workflow власника за префіксом `custom_id` або назвою команди:
-  - `pr:`, `mt:` → Роман;
-  - `menu:` і `/mentor` → Настя;
-  - `cal:`, `fb:` → Богдан.
-- `guides/discord-router.md`: як підключити свою гілку.
+- One Interactions Endpoint in n8n: Ed25519 signature check, PING answer.
+- Forwarding an action to its owner's workflow by `custom_id` prefix or command name: `pr:`, `mt:` → PR review and reminders; `menu:` and `/mentor` → mentor panel; `cal:`, `fb:` → calendar and feedback.
+- `guides/discord-router.md`: how to plug a part in.
 
-**Готово, коли:** endpoint приймає PING, відхиляє підроблені запити й доставляє тестову дію кожного префікса у свій workflow.
+**Done when:** the endpoint answers PING, rejects forged requests and delivers a test action of each prefix to its workflow.
 
-## R2. Схема `pr_cards`, `absences`
+## R2. Schemas
 
-Описати в `schema/`: поля, приклади документів, хто що пише й читає.
+Describe `pr_cards`, `absences` and `meeting_occurrences` in `schema/`: fields, example documents, who writes and reads.
 
-**Готово, коли:** схеми опубліковані до кінця 1-го тижня.
+**Done when:** the schemas are published by the end of week 1.
 
-## R3. Тригер таблиці задач
+## R3. Tasks sheet trigger
 
-- Apps Script у таблиці: колонки Назва / Story points / Duration / Status.
-- Реагує тільки на перехід `In Progress → Ready for Review`.
-- Посилання на задачу — з клітинки «Назва».
-- Надсилає подію в n8n із секретом.
-- `guides/tasks-sheet.md`: як встановити скрипт.
+- An Apps Script in the sheet: Name / Story points / Duration / Status columns.
+- Sends every Status change; a card is published only on `In Progress → Ready for Review`.
+- The task link comes from the Name cell.
+- Sends the event to n8n with a secret.
+- `guides/tasks-sheet.md`: how to install the script.
 
-**Готово, коли:** у тестовій таблиці зміна статусу надсилає подію, а інші переходи — ні.
+**Done when:** in a test sheet the status change sends an event, and only the right transition publishes a card.
 
-## R4. Пошук PR за задачею
+## R4. PR lookup
 
-GitHub API знаходить PR, що посилається на задачу (`Closes #N`), і повертає:
-- автора й аватар;
-- `+/−` рядків;
-- лейбли;
-- рішення рев'ю;
-- стан і `merged`.
+The GitHub API finds the PR that references the issue (`Closes #N`) and returns the author and avatar, `+/−` lines, labels, the review decision, the state and `merged`. Drafts are skipped; among several PRs the newest open one wins.
 
-Чернетки пропускаються; з кількох PR береться найновіший відкритий.
+**Done when:** a task with a PR returns all fields, a task without one returns "not found".
 
-**Готово, коли:** для задачі з PR повертаються всі поля, для задачі без PR — «не знайдено».
+## R5. PR card
 
-## R5. Картка PR
+- English text.
+- Role mentions by labels (label → role and the default role from `settings`).
+- Avatar, a `diff` block with `+N/−M`.
+- Buttons Open task · Resend (grey) · Open PR.
+- The message "Task … is in Ready for Review, but no PR is linked" with an Open task button.
 
-- Англійський текст.
-- Згадка ролей за лейблами («лейбл → роль» і роль за замовчуванням — із `settings`).
-- Аватар, блок `diff` з `+N/−M`.
-- Кнопки Open task · Resend (сіра) · Open PR.
-- Повідомлення «Task … is in Ready for Review, but no PR is linked» з кнопкою Open task.
+**Done when:** the card and the warning match the specification, and mentions notify the right roles.
 
-**Готово, коли:** картка й попередження відповідають специфікації, згадки сповіщають потрібні ролі.
+## R6. PR card state
 
-## R6. Стан карток PR
+- A `pr_cards` document.
+- A check every 10–15 min:
+  - reactions ✅ / 🟣 / 🔁;
+  - Resend is enabled after 12 h if the PR has no review decision and the task is still in `Ready for Review`;
+  - the task left `Ready for Review` or the PR is closed → the card is no longer checked.
 
-- Запис у `pr_cards`.
-- Перевірка раз на 10–15 хв:
-  - реакції ✅ / 🟣 / 🔁;
-  - Resend активна, якщо минуло 12 год, PR без рішення рев'ю, а задача досі в `Ready for Review`;
-  - задача пішла з `Ready for Review` або PR закрито → картку більше не перевіряємо.
-
-**Готово, коли:** кожен рядок таблиці «Стани PR» зі специфікації покритий тестом.
+**Done when:** every row of the "PR states" table in the specification is covered by a test.
 
 ## R7. Resend
 
-Будь-хто натискає → перевірка умов → нова картка → стара видаляється (якщо не вдалося — на старій вимикається кнопка) → новий відлік 12 год.
+Anyone clicks → conditions are re-checked → a new card → the old one is deleted (if that fails, its button is disabled) → a new 12 h countdown.
 
-**Готово, коли:** у каналі лишається одна актуальна картка на PR.
+**Done when:** the channel keeps one current card per PR.
 
-## R8. Планувальник Reminder
+## R8. Reminder scheduler
 
-- Читає `meetings` трьох типів (Weekly, Every N weeks, One-time) з урахуванням `meeting_exceptions`.
-- Публікує дві картки, за 30 і 5 хв (або як задано в зустрічі):
-  - згадки учасників, назва, опис, час;
-  - кнопки Join та «I can't attend today».
-- Без дублів після простою.
+- Reads `meetings` of three types (weekly, every N weeks, one-time) with `meeting_exceptions`.
+- Posts two cards, 30 and 5 min before (or as set in the meeting): participant mentions, title, description, time; Join and "I can't attend today" buttons.
+- No duplicates after downtime.
 
-**Готово, коли:** є тести для трьох типів зустрічей, для скасування й для перенесення однієї зустрічі.
+**Done when:** there are tests for the three meeting types, for cancelling and for moving one meeting.
 
-## R9. «I can't attend today»
+## R9. "I can't attend today"
 
-- Натискає будь-хто → форма Status.
-- Статус зберігається в `absences` для зустрічі й дати.
-- На другій картці форма вже заповнена.
-- Відповідь бачить лише той, хто натиснув.
+- Anyone clicks → a Status form.
+- The status is saved in `absences` for the meeting and date.
+- On the second card the form is prefilled.
+- Only the person who clicked sees the reply.
 
-**Готово, коли:** статус з картки за 30 хв видно на картці за 5 хв і в зведенні.
+**Done when:** a status from the 30-minute card is visible on the 5-minute card and in the summary.
 
-## R10. Старт зустрічі
+## R10. Meeting start
 
-- Є статуси → «Meeting started. Absent today (N)», згадки авторів без сповіщення, кнопки Join та OK («Seen by @…»).
-- Немає статусів → «Meeting started» + Join, без згадок.
-- Кнопка «I can't attend today» вимикається на обох картках.
+- With statuses → "Meeting started. Absent today (N)", author mentions without notifications, Join and OK buttons ("Seen by @…").
+- Without statuses → "Meeting started" + Join, no mentions.
+- "I can't attend today" is disabled on both cards.
 
-**Готово, коли:** обидва варіанти працюють, OK дописує, хто переглянув.
+**Done when:** both variants work and OK adds who has seen it.
 
-## R11. Тести й документація
+## R11. Tests and documentation
 
-- Юніт-тести логіки; e2e на n8n з моками GitHub і Discord.
-- Оновлені `features/01-pr-review.md` і `features/02-meeting-reminders.md`, якщо під час реалізації щось змінилось.
-- Події в `events` для кожної публікації, Resend і старту зустрічі (за схемою Богдана).
+- Unit tests of the logic; e2e on n8n with mocked GitHub, Discord and Firestore.
+- `features/01-pr-review.md` and `features/02-meeting-reminders.md` updated where the implementation changed them.
+- `events` documents for every publish, Resend and meeting start.
 
-**Готово, коли:** тести зелені, документація відповідає реалізації.
+**Done when:** tests are green and the documentation matches the implementation.
+
+## R12. Launch on a real n8n
+
+- Fill `.env` (Firebase key via `npm run env:firebase`).
+- Start n8n with the variables from `.env` and the settings from the [development guide](../guides/development.md); import and publish the six workflows.
+- A public HTTPS address (a tunnel or a domain) → the Interactions Endpoint URL in the Developer Portal and `webhookUrl` in the sheet script.
+
+**Done when:** Discord saves the Interactions Endpoint URL and `testSelectedRow` in the sheet produces an `mfPrTaskEvents` execution.
+
+## R13. Live check
+
+- Feature 1: a task with a linked PR → a card in `pr-review` with the right mention; approve / merge → a reaction within 10 min; a task without a PR → the warning.
+- Feature 2: a test meeting in `meetings` → reminders at 30 and 5 min → a status via "I can't attend today" → the start summary → OK.
+
+**Done when:** both scenarios pass on the team's Discord server.
